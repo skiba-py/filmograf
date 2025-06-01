@@ -1,35 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useState } from 'react';
+import MainPage from './pages/MainPage';
+import FavoritesPage from './pages/FavoritesPage';
+import MovieDetailsPage from './pages/MovieDetailsPage';
+import MovieFormPage from './pages/MovieFormPage';
+import { movies as initialMovies } from './data/movies';
+import { MoviesContext } from './data/MoviesContext';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [movies, setMovies] = useState(initialMovies);
+
+  const addMovie = movie => {
+    setMovies(prev => [
+      { ...movie, id: Date.now(), isFavorite: false },
+      ...prev,
+    ]);
+  };
+
+  const editMovie = (id, updated) => {
+    setMovies(prev => prev.map(m => (m.id === id ? { ...m, ...updated } : m)));
+  };
+
+  const deleteMovie = id => {
+    setMovies(prev => prev.filter(m => m.id !== id));
+  };
+
+  const toggleFavorite = id => {
+    setMovies(prev => prev.map(m => (m.id === id ? { ...m, isFavorite: !m.isFavorite } : m)));
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <MoviesContext.Provider value={{ movies, addMovie, editMovie, deleteMovie, toggleFavorite }}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<MainPage />} />
+          <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/movie/:id" element={<MovieDetailsPage />} />
+          <Route path="/add" element={<MovieFormPage />} />
+          <Route path="/edit/:id" element={<MovieFormPage />} />
+        </Routes>
+      </BrowserRouter>
+    </MoviesContext.Provider>
+  );
 }
 
-export default App
+export default App;
